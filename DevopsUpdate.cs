@@ -19,16 +19,21 @@ namespace apiClickupDevops {
         private readonly RelationService _relationService;
         private readonly ClickupService _clickupService;
         private readonly IMapper _mapper;
+        private readonly int _integradorClickupId;
+        private readonly string _integradorDevopsId;
 
         public DevopsUpdate(
             ILogger<ClickupUpdate> logger,
             RelationService relationService,
             ClickupService clickupService,
-            IMapper mapper) {
+            IMapper mapper,
+            Microsoft.Extensions.Configuration.IConfiguration configuration) {
             _logger = logger;
             _relationService = relationService;
             _clickupService = clickupService;
             _mapper = mapper;
+            _integradorClickupId = int.Parse(configuration["IntegradorClickupId"]!);
+            _integradorDevopsId = configuration["IntegradorDevopsId"]!;
         }
 
         [FunctionName("DevopsUpdate")]
@@ -42,7 +47,7 @@ namespace apiClickupDevops {
         private async void DevopsUpdateInBackground(JObject data) {
             try {
                 var devopsWebhook = _mapper.Map<DevopsUpdateWebhook>(data);
-                if (devopsWebhook.ChangedBy == Configuration.IntegradorDevopsId)
+                if (devopsWebhook.ChangedBy == _integradorDevopsId)
                     return;
 
                 var relation = await _relationService.GetByDevopsId(devopsWebhook.AppId);
